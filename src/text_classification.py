@@ -11,7 +11,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, BaggingClassifier
 from sklearn.metrics import accuracy_score, classification_report
 from joblib import dump, load
-import matplotlib
+#import matplotlib
 import matplotlib.pyplot as plt
 from text_preprocessing import _load_data
 
@@ -26,12 +26,21 @@ def my_train_test_split(*datasets):
     return train_test_split(*datasets, test_size=0.3, random_state=101)
 
 def train_classifier(classifier, X_train, y_train):
+    '''
+    Train the classifier using the training set.
+    '''
     classifier.fit(X_train, y_train)
 
 def predict_labels(classifier, X_test):
+    '''
+    Predict labels for the test set using the trained classifier.
+    '''
     return classifier.predict(X_test)
 
 def main():
+    '''
+    Main function to load data, preprocess it, train classifiers, and evaluate their performance.
+    '''
 
     raw_data = _load_data()
     preprocessed_data = load('output/preprocessed_data.joblib')
@@ -52,28 +61,27 @@ def main():
         'Bagging Classifier': BaggingClassifier()
     }
 
-    pred_scores = dict()
-    pred = dict()
+    pred_scores = {}
+    pred = {}
     # save misclassified messages
-    file = open('output/misclassified_msgs.txt', 'a', encoding='utf-8')
-    for key, value in classifiers.items():
-        train_classifier(value, X_train, y_train)
-        pred[key] = predict_labels(value, X_test)
-        pred_scores[key] = [accuracy_score(y_test, pred[key])]
-        print('\n############### ' + key + ' ###############\n')
-        print(classification_report(y_test, pred[key]))
+    with open('output/misclassified_msgs.txt', 'w', encoding='utf-8') as file:
+        for key, value in classifiers.items():
+            train_classifier(value, X_train, y_train)
+            pred[key] = predict_labels(value, X_test)
+            pred_scores[key] = [accuracy_score(y_test, pred[key])]
+            print('\n############### ' + key + ' ###############\n')
+            print(classification_report(y_test, pred[key]))
 
-        # write misclassified messages into a new text file
-        file.write('\n#################### ' + key + ' ####################\n')
-        file.write('\nMisclassified Spam:\n\n')
-        for msg in test_messages[y_test < pred[key]]:
-            file.write(msg)
-            file.write('\n')
-        file.write('\nMisclassified Ham:\n\n')
-        for msg in test_messages[y_test > pred[key]]:
-            file.write(msg)
-            file.write('\n')
-    file.close()
+            # write misclassified messages into a new text file
+            file.write('\n#################### ' + key + ' ####################\n')
+            file.write('\nMisclassified Spam:\n\n')
+            for msg in test_messages[y_test < pred[key]]:
+                file.write(msg)
+                file.write('\n')
+            file.write('\nMisclassified Ham:\n\n')
+            for msg in test_messages[y_test > pred[key]]:
+                file.write(msg)
+                file.write('\n')
 
     print('\n############### Accuracy Scores ###############')
     accuracy = pd.DataFrame.from_dict(pred_scores, orient='index', columns=['Accuracy Rate'])
