@@ -1,6 +1,7 @@
 """
 Train the model using different algorithms.
 """
+import json
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -97,7 +98,8 @@ def main():
     plt.savefig("output/accuracy_scores.png")
 
     # Store "best" classifier
-    dump(classifiers['Decision Tree'], 'output/model.joblib')
+    #dump(classifiers['Decision Tree'], 'output/model.joblib')
+    json.dump(classifiers['Decision Tree'].get_params(), open('output/model.json', 'w'))
 
 if __name__ == "__main__":
     main()
